@@ -5,7 +5,8 @@ class CalorieTracker {
     this._meals = [];
     this._workouts = [];
 
-    this._displayCalorieLimit(calLimit);
+    this._displayCalorieLimit(this._calorieLimit);
+    this._displayCaloriesRemaining();
   }
 
   // Public methods
@@ -13,6 +14,7 @@ class CalorieTracker {
   addMeal(meal) {
     this._meals.push(meal);
     this._totalCalories += meal.calories;
+    this._displayNewMeal(meal);
     this._renderState();
   }
 
@@ -30,7 +32,7 @@ class CalorieTracker {
   addWorkout(workout) {
     this._workouts.push(workout);
     this._totalCalories -= workout.calories;
-
+    this._displayNewWorkout(workout);
     this._renderState();
   }
 
@@ -43,17 +45,6 @@ class CalorieTracker {
     });
 
     this._renderState();
-  }
-
-  resetDay() {
-    document.querySelectorAll("div.reset").forEach((card) => {
-      card.innerText = 0;
-    });
-
-    // Remaining: Reset the Progress bar
-
-    this._meals.splice(0, this._meals.length);
-    this._workouts.splice(0, this._workouts.length);
   }
 
   setLimit(e) {
@@ -102,7 +93,7 @@ class CalorieTracker {
     caloriesBurnedEle.innerText = caloriesBurned;
   }
 
-  _displayRemainingCalories() {
+  _displayCaloriesRemaining() {
     document.getElementById("calories-remaining").innerText =
       this._calorieLimit - this._totalCalories;
   }
@@ -124,11 +115,56 @@ class CalorieTracker {
     }
   }
 
+  _displayNewMeal(meal) {
+    const mealItemsList = document.getElementById("meal-items");
+    const div = document.createElement("div");
+    div.className = "card my-2";
+    div.setAttribute("data-id", meal.id);
+
+    div.innerHTML = `
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+          <h4 class="mx-1">${meal.name}</h4>
+          <div class="fs-1 bg-primary text-white text-center rounded-2 px-2 px-sm-5">
+            ${meal.calories} 
+          </div>
+          <button class="delete btn btn-danger btn-sm mx-2">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>`;
+
+    mealItemsList.append(div);
+  }
+
+  _displayNewWorkout(workout) {
+    const workoutItemsList = document.getElementById("workout-items");
+    const div = document.createElement("div");
+    div.className = "card my-2";
+    div.setAttribute("data-id", workout.id);
+
+    div.innerHTML = `
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+          <h4 class="mx-1">${workout.name}</h4>
+          <div class="fs-1 bg-primary text-white text-center rounded-2 px-2 px-sm-5"> 
+            ${workout.calories} 
+          </div>
+          <button class="delete btn btn-danger btn-sm mx-2">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>`;
+
+    workoutItemsList.append(div);
+  }
+
   _renderState() {
+    this._displayCalorieLimit(this._calorieLimit);
     this._displayNetCalories();
     this._displayCaloriesConsumed();
     this._displayCaloriesBurned();
-    this._displayRemainingCalories();
+    this._displayCaloriesRemaining();
     this._displayCalorieProgress();
   }
 }
@@ -149,18 +185,124 @@ class Workout {
   }
 }
 
-const paratha = new Meal("Paratha", 555);
-const rice = new Meal("Rice", 250);
-const dhokla = new Meal("Dhokla", 400);
+class AppInit {
+  constructor() {
+    this._tracker = new CalorieTracker(1500);
 
-const pushUps = new Workout("Push ups", 120);
-const plank = new Workout("Plank", 100);
+    /* Todos...
+    // 01. Reset App
+    // 02. Set Calorie Limit
+    // 03. Add newItem to list
+    // 04. Delete an Item from list
+    // 05. Filter
+    // 06. Tweak design a bit.
+    */
 
-const tracker = new CalorieTracker(1000);
+    document
+      .getElementById("reset")
+      .addEventListener("click", this._reset.bind(this));
 
-tracker.addMeal(paratha);
-tracker.addMeal(rice);
-// tracker.addMeal(dhokla);
-tracker.addWorkout(pushUps);
-// tracker.addWorkout(plank);
-// tracker.removeMeal(paratha.id);
+    document
+      .getElementById("save")
+      .addEventListener("click", this._setLimit.bind(this));
+
+    document
+      .getElementById("meal-form")
+      .addEventListener("submit", this._addNewItem.bind(this, "meal"));
+
+    document
+      .getElementById("workout-form")
+      .addEventListener("submit", this._addNewItem.bind(this, "workout"));
+
+    document
+      .getElementById("meal-items")
+      .addEventListener("click", this._removeItem.bind(this, "meal"));
+
+    document
+      .getElementById("workout-items")
+      .addEventListener("click", this._removeItem.bind(this, "workout"));
+  }
+
+  _setLimit(e) {
+    e.preventDefault();
+
+    const calorieLimitInput = document.getElementById("limit");
+
+    if (calorieLimitInput.value === "") {
+      alert("Daily Calorie Limit cannot be Empty!");
+      return;
+    }
+
+    this._tracker._calorieLimit = calorieLimitInput.value;
+
+    const limitModalEle = document.getElementById("limit-modal");
+    bootstrap.Modal.getInstance(limitModalEle).hide();
+
+    this._tracker._renderState();
+
+    // Note: Check why not reset needed?
+  }
+
+  _reset(e) {
+    this._tracker._totalCalories = 0;
+    this._tracker._meals = [];
+    this._tracker._workouts = [];
+    this._tracker._renderState();
+
+    document.getElementById("filter-meals").value = "";
+    document.getElementById("filter-workouts").value = "";
+
+    document.getElementById("meal-items").innerHTML = "";
+    document.getElementById("workout-items").innerHTML = "";
+  }
+
+  _addNewItem(type, e) {
+    e.preventDefault();
+
+    const itemName = document.getElementById(`${type}-name`);
+    const itemCalories = document.getElementById(`${type}-calories`);
+
+    // Validate input fields
+    if (itemName.value === "" || itemCalories.value === "") {
+      alert("Please enter all the fields");
+      return;
+    }
+
+    if (type === "meal") {
+      const meal = new Meal(itemName.value, +itemCalories.value);
+      this._tracker.addMeal(meal);
+    } else {
+      const workout = new Workout(itemName.value, +itemCalories.value);
+      this._tracker.addWorkout(workout);
+    }
+
+    itemName.value = "";
+    itemCalories.value = "";
+
+    const itemForm = document.getElementById(`collapse-${type}`);
+    const bsCollapse = new bootstrap.Collapse(itemForm, {
+      toggle: true,
+    });
+  }
+
+  _removeItem(type, e) {
+    const clickedEle =
+      e.target.classList.contains("fa-xmark") ||
+      e.target.classList.contains("delete");
+
+    if (clickedEle) {
+      const item = e.target.closest(".card");
+      const itemID = item.getAttribute("data-id");
+
+      item.remove();
+
+      if (type === "meal") {
+        this._tracker.removeMeal(itemID);
+      } else {
+        this._tracker.removeWorkout(itemID);
+      }
+    }
+  }
+}
+
+const fireApp = new AppInit();
