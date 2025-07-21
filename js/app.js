@@ -103,10 +103,14 @@ class CalorieTracker {
     const caloriesRemainingCard = document.querySelector("div.alert-bg");
 
     const caloriesRemaining = this._calorieLimit - this._totalCalories;
-    const progressPercent = (this._totalCalories / this._calorieLimit) * 100;
-    const width = Math.min(progressPercent, 100);
 
-    progressBar.style.width = `${width}%`;
+    if (this._totalCalories <= 0) {
+      progressBar.style.width = "0%";
+    } else {
+      const progressPercent = (this._totalCalories / this._calorieLimit) * 100;
+      const width = Math.min(progressPercent, 100);
+      progressBar.style.width = `${width}%`;
+    }
 
     if (caloriesRemaining <= 0) {
       caloriesRemainingCard.classList.add("bg-danger");
@@ -221,6 +225,14 @@ class AppInit {
     document
       .getElementById("workout-items")
       .addEventListener("click", this._removeItem.bind(this, "workout"));
+
+    document
+      .getElementById("filter-meals")
+      .addEventListener("input", this._filterItems.bind(this, "meal"));
+
+    document
+      .getElementById("filter-workouts")
+      .addEventListener("input", this._filterItems.bind(this, "workout"));
   }
 
   _setLimit(e) {
@@ -302,6 +314,23 @@ class AppInit {
         this._tracker.removeWorkout(itemID);
       }
     }
+  }
+
+  _filterItems(type, e) {
+    const filterInput = document.getElementById(`filter-${type}s`);
+    const mealWorkoutList = document.getElementById(`${type}-items`);
+    const listItems = mealWorkoutList.querySelectorAll("div.card");
+
+    listItems.forEach((item) => {
+      const itemName = item.querySelector("h4").innerText;
+      if (
+        itemName.toLowerCase().indexOf(filterInput.value.toLowerCase()) === -1
+      ) {
+        item.style.display = "none";
+      } else {
+        item.style.display = "flex";
+      }
+    });
   }
 }
 
