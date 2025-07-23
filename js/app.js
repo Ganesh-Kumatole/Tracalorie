@@ -1,19 +1,24 @@
 class CalorieTracker {
-  constructor(calLimit) {
-    this._calorieLimit = calLimit;
-    this._totalCalories = 0;
-    this._meals = [];
-    this._workouts = [];
+  constructor() {
+    this.storage = new Storage();
 
-    this._displayCalorieLimit(this._calorieLimit);
-    this._displayCaloriesRemaining();
+    this._calorieLimit = this.storage.getCalorieLimit();
+    this._totalCalories = this.storage.getTotalCalories();
+    this._meals = this.storage.getMeals();
+    this._workouts = this.storage.getWorkouts();
+
+    this._renderState();
   }
 
   // Public methods
 
   addMeal(meal) {
     this._meals.push(meal);
+    this.storage.saveMeals(this._meals);
+
     this._totalCalories += meal.calories;
+    this.storage.updateTotalCalories(this._totalCalories);
+
     this._displayNewMeal(meal);
     this._renderState();
   }
@@ -22,7 +27,10 @@ class CalorieTracker {
     this._meals.forEach((meal, index) => {
       if (meal.id === id) {
         this._totalCalories -= meal.calories;
+        this.storage.updateTotalCalories(this._totalCalories);
+
         this._meals.splice(index, 1);
+        this.storage.saveMeals(this._meals);
       }
     });
 
@@ -31,7 +39,11 @@ class CalorieTracker {
 
   addWorkout(workout) {
     this._workouts.push(workout);
+    this.storage.saveWorkouts(this._workouts);
+
     this._totalCalories -= workout.calories;
+    this.storage.updateTotalCalories(this._totalCalories);
+
     this._displayNewWorkout(workout);
     this._renderState();
   }
@@ -40,7 +52,10 @@ class CalorieTracker {
     this._workouts.forEach((workout, index) => {
       if (workout.id === id) {
         this._totalCalories += workout.calories;
+        this.storage.updateTotalCalories(this._totalCalories);
+
         this._workouts.splice(index, 1);
+        this.storage.saveWorkouts(this._workouts);
       }
     });
 
@@ -116,6 +131,10 @@ class CalorieTracker {
       caloriesRemainingCard.classList.add("bg-danger");
       progressBar.classList.remove("bg-success");
       progressBar.classList.add("bg-danger");
+    } else {
+      caloriesRemainingCard.classList.remove("bg-danger");
+      progressBar.classList.remove("bg-danger");
+      progressBar.classList.add("bg-success");
     }
   }
 
@@ -163,6 +182,15 @@ class CalorieTracker {
     workoutItemsList.append(div);
   }
 
+  _loadItems(meals, workouts) {
+    meals.forEach((meal) => {
+      this._displayNewMeal(meal);
+    });
+    workouts.forEach((workout) => {
+      this._displayNewWorkout(workout);
+    });
+  }
+
   _renderState() {
     this._displayCalorieLimit(this._calorieLimit);
     this._displayNetCalories();
@@ -191,17 +219,12 @@ class Workout {
 
 class AppInit {
   constructor() {
-    this._tracker = new CalorieTracker(1500);
+    this._tracker = new CalorieTracker();
+    this._tracker._loadItems(this._tracker._meals, this._tracker._workouts);
+    this._loadEventListeners();
+  }
 
-    /* Todos...
-    // 01. Reset App
-    // 02. Set Calorie Limit
-    // 03. Add newItem to list
-    // 04. Delete an Item from list
-    // 05. Filter
-    // 06. Tweak design a bit.
-    */
-
+  _loadEventListeners() {
     document
       .getElementById("reset")
       .addEventListener("click", this._reset.bind(this));
@@ -246,19 +269,27 @@ class AppInit {
     }
 
     this._tracker._calorieLimit = calorieLimitInput.value;
+    this._tracker.storage.setCalorieLimit(this._tracker._calorieLimit);
 
     const limitModalEle = document.getElementById("limit-modal");
     bootstrap.Modal.getInstance(limitModalEle).hide();
 
     this._tracker._renderState();
+    this._reset();
 
-    // Note: Check why not reset needed?
+    calorieLimitInput.value = "";
   }
 
   _reset(e) {
     this._tracker._totalCalories = 0;
+    this._tracker.storage.updateTotalCalories(this._tracker._totalCalories);
+
     this._tracker._meals = [];
+    this._tracker.storage.saveMeals(this._tracker._meals);
+
     this._tracker._workouts = [];
+    this._tracker.storage.saveWorkouts(this._tracker._workouts);
+
     this._tracker._renderState();
 
     document.getElementById("filter-meals").value = "";
@@ -331,6 +362,56 @@ class AppInit {
         item.style.display = "flex";
       }
     });
+  }
+}
+
+class Storage {
+  setCalorieLimit(calorieLimit) {
+    localStorage.setItem("calorieLimit", calorieLimit);
+  }
+
+  getCalorieLimit() {
+    if (localStorage.getItem("calorieLimit") !== null) {
+      return +localStorage.getItem("calorieLimit");
+    } else {
+      return 2000;
+    }
+  }
+
+  updateTotalCalories(totalCalories) {
+    localStorage.setItem("TotalCalories", totalCalories);
+  }
+
+  getTotalCalories() {
+    if (localStorage.getItem("TotalCalories") !== null) {
+      return +localStorage.getItem("TotalCalories");
+    } else {
+      return 0;
+    }
+  }
+
+  saveMeals(meals) {
+    localStorage.setItem("meals", JSON.stringify(meals));
+  }
+
+  getMeals() {
+    if (localStorage.getItem("meals") !== null) {
+      return JSON.parse(localStorage.getItem("meals"));
+    } else {
+      return [];
+    }
+  }
+
+  saveWorkouts(workouts) {
+    localStorage.setItem("workouts", JSON.stringify(workouts));
+  }
+
+  getWorkouts() {
+    if (localStorage.getItem("workouts") !== null) {
+      return JSON.parse(localStorage.getItem("workouts"));
+    } else {
+      return [];
+    }
   }
 }
 
