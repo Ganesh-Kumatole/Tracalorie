@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 
 * {
   box-sizing: border-box;
@@ -16,7 +16,7 @@
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   background-color: #f4f4f4;
   color: #333;
 }
@@ -102,9 +102,41 @@ body {
   margin: 2rem 0;
 }
 
+.calories-capsule {
+  font-size: 1.3rem !important;
+  padding: 5px 25px !important;
+  border-radius: 2rem !important;
+}
+
+.name-size {
+  font-size: 1.3rem;
+}
+
+i.fa-xmark {
+  color: red;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
 @media (max-width: 576px) {
   header {
     flex-direction: column;
     gap: 1rem;
+  }
+}
+@media (max-width: 370px) {
+  .mt-1 {
+    margin-top: 1rem !important;
+  }
+}
+@media (max-width: 500px) {
+  .calories-capsule-mobile {
+    font-size: 1.1rem !important;
+    padding: 5px 15px !important;
+    border-radius: 1rem !important;
+  }
+
+  .name-size {
+    font-size: 1.1rem;
   }
 }

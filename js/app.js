@@ -147,11 +147,11 @@ class CalorieTracker {
     div.innerHTML = `
       <div class="card-body">
         <div class="d-flex align-items-center justify-content-between">
-          <h4 class="mx-1">${meal.name}</h4>
-          <div class="fs-1 bg-primary text-white text-center rounded-2 px-2 px-sm-5">
+          <h4 class="mx-1 name-size">${meal.name}</h4>
+          <div class="fs-1 calories-capsule calories-capsule-mobile bg-primary text-white text-center rounded-2 px-2 px-sm-5">
             ${meal.calories} 
           </div>
-          <button class="delete btn btn-danger btn-sm mx-2">
+          <button class="delete btn  btn-sm mx-2">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -169,12 +169,12 @@ class CalorieTracker {
     div.innerHTML = `
       <div class="card-body">
         <div class="d-flex align-items-center justify-content-between">
-          <h4 class="mx-1">${workout.name}</h4>
-          <div class="fs-1 bg-primary text-white text-center rounded-2 px-2 px-sm-5"> 
+          <h4 class="mx-1 name-size">${workout.name}</h4>
+          <div class="fs-1 calories-capsule calories-capsule-mobile bg-primary text-white text-center rounded-2 px-2 px-sm-5"> 
             ${workout.calories} 
           </div>
-          <button class="delete btn btn-danger btn-sm mx-2">
-            <i class="fa-solid fa-xmark"></i>
+          <button class="delete btn  btn-sm mx-2">
+            <i class="fa-solid fa-xmark "></i>
           </button>
         </div>
       </div>`;
